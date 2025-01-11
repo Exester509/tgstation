@@ -302,7 +302,7 @@
 			target_location = get_turf(src)
 	else
 		target_location = get_turf(src)
-	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, build_count, build_time_per_item, material_cost_coefficient, charge_per_item, materials_needed, target_location), build_time_per_item)
+	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, build_count, build_time_per_item, material_cost_coefficient, charge_per_item, materials_needed, target_location, ui.user), build_time_per_item)
 
 	return TRUE
 
@@ -318,7 +318,7 @@
  * * list/materials_needed - the list of materials to print 1 item
  * * turf/target - the location to drop the printed item on
 */
-/obj/machinery/autolathe/proc/do_make_item(datum/design/design, items_remaining, build_time_per_item, material_cost_coefficient, charge_per_item, list/materials_needed, turf/target)
+/obj/machinery/autolathe/proc/do_make_item(datum/design/design, items_remaining, build_time_per_item, material_cost_coefficient, charge_per_item, list/materials_needed, turf/target, mob/user)
 	PROTECTED_PROC(TRUE)
 
 	if(items_remaining <= 0) // how
@@ -349,6 +349,11 @@
 		say("Unable to continue production, missing materials.")
 		finalize_build()
 		return
+
+	for(var/datum/material/mat in materials_needed) //Awards the custom material achievement if the item can be built and isn't made out of a roundstart material
+		if(!istype(mat, /datum/material/glass) && !istype(mat, /datum/material/iron))
+			user.client.give_award(/datum/award/achievement/misc/getting_an_upgrade, user)
+
 	materials.use_materials(materials_needed, material_cost_coefficient, is_stack ? items_remaining : 1)
 
 	var/atom/movable/created
